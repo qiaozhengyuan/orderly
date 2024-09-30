@@ -109,6 +109,25 @@ contract Pool is
     }
 
     /**
+     * @dev Allows the admin to withdraw accumulated fees by calculating the difference between the token balance and the reserve.
+     * @param token The address of the token whose fees should be withdrawn.
+     * @param to The address to send the withdrawn fees.
+     */
+    function withdrawFees(
+        address token,
+        address to
+    ) external onlyRole(ADMIN_ROLE) {
+        uint256 contractBalance = IERC20(token).balanceOf(address(this)); // Get the current balance of the contract for the token
+        uint256 reserve = reserves[token]; // Get the reserve amount for the token
+        require(contractBalance > reserve, "No fees available to withdraw");
+
+        uint256 feeAmount = contractBalance - reserve; // The difference is the fee that can be withdrawn
+
+        // Transfer the fees to the specified address
+        _withdrawToken(token, to, feeAmount);
+    }
+
+    /**
      * @dev Adds liquidity to the pool. Requires the sender to provide tokens proportional
      * to their current reserves.
      * @param amounts Array of token amounts to deposit, must match the number of supported tokens.
